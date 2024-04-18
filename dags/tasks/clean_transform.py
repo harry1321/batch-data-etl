@@ -92,7 +92,7 @@ class CleanTool:
         #dict{vd:time index} 輸出格式
         temp_dict = {}
         error_count = 0
-        error_rate = 0.0
+        error_ratio = 0.0
         if dtype == 'speed':
             div = 1
         elif dtype == 'flow':
@@ -114,14 +114,14 @@ class CleanTool:
                         temp = list(set(temp))
                         temp.sort()
                         temp_dict[kk] = temp
-                        #error_count = len(temp)
-                        #error_rate = 100*error_count/(1439*65)
+                        error_count = len(temp)
+                        error_ratio = 100*error_count/(1439*65)
 
-        return temp_dict, error_rate
+        return temp_dict, error_ratio
 
     #處理負值數據
     def imputation_data(self, data, dictionary, dtype):#移動平均方修正錯誤資料
-        new_dictionary, rate = self.read_error_code(dictionary,dtype)
+        new_dictionary, ratio = self.read_error_code(dictionary,dtype)
         for k, v in new_dictionary.items():
             #print('vd name: %s'%k)
             for i in v:
@@ -129,7 +129,7 @@ class CleanTool:
                     #print('origin value: %i'%data.loc[:,k][i])
                     #print('MA: ',np.average(data.loc[:,k][i-6:i]))
                     data.loc[i,k] = np.average(data.loc[i-6:i,k])
-        return data
+        return data, ratio
     
     def detect_error_data(self):
         error_code={}
@@ -195,9 +195,11 @@ class CleanTool:
 
     def preprocess_data(self):
         error_code = self.detect_error_data()
-        self.flow = self.imputation_data(self.flow, error_code, 'flow')
-        self.speed = self.imputation_data(self.speed, error_code, 'speed')
-        self.occ = self.imputation_data(self.occ,error_code, 'occ')
+        self.flow, fratio = self.imputation_data(self.flow, error_code, 'flow')
+        self.speed, sratio = self.imputation_data(self.speed, error_code, 'speed')
+        self.occ, oratio = self.imputation_data(self.occ,error_code, 'occ')
+        temp = [fratio, sratio, oratio]
+        return np.power(np.prod(temp), 1/len(temp))
 
     def transform(self):
         if self.interval == '1':

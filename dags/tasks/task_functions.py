@@ -1,16 +1,13 @@
 from datetime import datetime, timedelta
 
 from tasks.extract import GenData
-from tasks.clean_transform import *
+from tasks.clean_transform import CleanTool
 from tasks.read_load_gcp import GCSBucket
 
 def task_date(ti):
     # 以2021/05/30為例 格式為 date="20210530"
     execute_date = datetime.today() - timedelta(days=1)
     execute_date = execute_date.strftime('%Y%m%d')
-    data_kind = ['flow','speed','occ']
-    full_path_today = [f"{execute_date}_{kind}.csv" for kind in data_kind]
-    # XCom push file name in gcs and date
     return {'date':execute_date}
 
 def task_gen(ti):
@@ -31,9 +28,12 @@ def task_clean(ti):
     temp = ti.xcom_pull(task_ids="date")
     date = temp.get("date")
     sweep = CleanTool(date,'1')
-    sweep.preprocess_data()
+    ratio = sweep.preprocess_data()
     sweep.transform()
-    sweep.save()def task_upload(data_state,ti):
+    sweep.save()
+    return {"error_ratio":ratio}
+
+def task_upload(data_state,ti):
     temp = ti.xcom_pull(task_ids="date")
     date = temp.get("date")
     gcs = GCSBucket()
