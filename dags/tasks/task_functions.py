@@ -2,6 +2,7 @@ from datetime import datetime, timedelta
 
 from tasks.extract import GenData
 from tasks.clean_transform import *
+from tasks.read_load_gcp import GCSBucket
 
 def task_date(ti):
     # 以2021/05/30為例 格式為 date="20210530"
@@ -32,4 +33,17 @@ def task_clean(ti):
     sweep = CleanTool(date,'1')
     sweep.preprocess_data()
     sweep.transform()
-    sweep.save()
+    sweep.save()def task_upload(data_state,ti):
+    temp = ti.xcom_pull(task_ids="date")
+    date = temp.get("date")
+    gcs = GCSBucket()
+    gcs.upload_directory(source_directory=f"/opt/airflow/data/{data_state}/{date}", prefix=date)
+
+def task_branch(success_route, failed_route, ti):
+    temp = ti.xcom_pull(task_ids="clean")
+    if temp.get("error_ratio") > 1:
+        print(f"Did not pass data quality test with data error ratio {temp.get('error_ratio')}")
+        return f"{failed_route}"
+    else:
+        print(f"Did not pass data quality test with data error ratio {temp.get('error_ratio')}")
+        return f"{success_route}"
