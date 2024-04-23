@@ -8,6 +8,8 @@ from tasks.task_functions import task_date, task_gen, task_clean, task_branch, t
 
 default_args={
     "owner": 'Harry Yang',
+    'start_date': datetime(2024, 4, 20, 0, 0),
+    'schedule_interval': '0 5 * * *',
     "retries": 1,
     "retry_delay": timedelta(minutes=1),
 }
