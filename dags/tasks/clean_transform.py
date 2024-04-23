@@ -1,8 +1,8 @@
 import pandas as pd
 import numpy as np
 
-import os
-
+from pathlib import Path
+from datetime import date, datetime, timedelta, timezone
 def get_index_1(idx):
     if idx.empty:
         return False
@@ -30,20 +30,28 @@ class CleanTool:
         self.date = date
         self.interval = interval
         
-        self.rpath = os.getcwd() + '/data/unprocessed/' + self.date
-        self.spath = os.getcwd() + '/data/processed/' + self.date
-        
-        self.flow = pd.read_csv(self.rpath + "/%s_flow_vd2.csv"%(self.date), index_col=0, encoding = 'big5')
-        self.speed = pd.read_csv(self.rpath + "/%s_speed_vd2.csv"%(self.date), index_col=0, encoding = 'big5')
-        self.occ = pd.read_csv(self.rpath + "/%s_occ_vd2.csv"%(self.date), index_col=0, encoding = 'big5')
-    
+        self.rpath = Path.cwd().joinpath(*['data','unprocessed',self.date])
+        self.spath = Path.cwd().joinpath(*['data','processed',self.date])
+        self.flow = pd.DataFrame()
+        self.speed = pd.DataFrame()
+        self.occ = pd.DataFrame()
+        self.read()
+
+    def read(self):
+        path = self.rpath
+        if self.interval == "1":
+            path = self.rpath
+        elif self.interval == "5":
+            path = self.spath
+        self.flow = pd.read_csv(path.joinpath(f'{self.date}_flow_{self.interval}min.csv'), index_col=0, encoding = 'big5')
+        self.speed = pd.read_csv(path.joinpath(f'{self.date}_speed_{self.interval}min.csv'), index_col=0, encoding = 'big5')
+        self.occ = pd.read_csv(path.joinpath(f'{self.date}_occ_{self.interval}min.csv'), index_col=0, encoding = 'big5')
+
     def change_date(self, date):
         self.date = date
-        self.rpath = os.path.dirname(os.getcwd()) + '/data/unprocessed/' + self.date
-        self.spath = os.path.dirname(os.getcwd()) + '/data/processed/' + self.date
-        self.flow = pd.read_csv(self.rpath + "/%s_flow_vd2.csv"%(self.date), index_col=0, encoding = 'big5')
-        self.speed = pd.read_csv(self.rpath + "/%s_speed_vd2.csv"%(self.date), index_col=0, encoding = 'big5')
-        self.occ = pd.read_csv(self.rpath + "/%s_occ_vd2.csv"%(self.date), index_col=0, encoding = 'big5')
+        self.rpath = Path.cwd().joinpath(*['data','unprocessed',self.date])
+        self.spath = Path.cwd().joinpath(*['data','processed',self.date])
+        self.read()
     
     def continuous_data(self,data):#檢查連續相同數據筆數是否超過6筆
         free_flow = get_index_2(data,data.mask((self.flow == 0) & (self.speed == 0) & (self.occ == 0), np.nan))
@@ -194,6 +202,10 @@ class CleanTool:
         return error_code
 
     def preprocess_data(self):
+        self.flow[self.flow < 0] = 0
+        self.speed[self.speed < 0] = 0
+        self.occ[self.occ < 0] = 0
+        
         error_code = self.detect_error_data()
         self.flow, fratio = self.imputation_data(self.flow, error_code, 'flow')
         self.speed, sratio = self.imputation_data(self.speed, error_code, 'speed')
@@ -202,25 +214,32 @@ class CleanTool:
         return np.power(np.prod(temp), 1/len(temp))
 
     def transform(self):
+        mainline_id = pd.read_csv('https://raw.githubusercontent.com/harry1321/Traffic-Dashboard/test/data/vd_static_mainline.csv')
+        mainline_id = [mainline_id.iloc[i,0] for i in range(mainline_id.shape[0])]
+
+        self.flow.columns, self.speed.columns, self.occ.columns = mainline_id, mainline_id, mainline_id
+
+        time_index = pd.date_range(self.date,periods=288,freq="5min").to_pydatetime()# python datetime object
+        tz = timezone(timedelta(hours=8)) # 設定+8時區
+        time_index = [t.replace(tzinfo=tz) for t in time_index] # 指定輸入的datetime時區為+8
+        stamp_index = [t.timestamp() for t in time_index] # 取得timestamp
+        self.flow.index, self.speed.index, self.occ.index = stamp_index, stamp_index, stamp_index
+        self.flow.index.names, self.speed.index.names, self.occ.index.names = ['time'], ['time'], ['time']
+
         if self.interval == '1':
             self.flow = (self.flow/60).groupby(self.flow.index // 5).sum().round(0)*12
             speed = (self.speed*self.flow/60).groupby(self.speed.index // 5).sum()
             self.speed = (12*speed/self.flow).round(2)
             self.occ = (self.occ).groupby(self.occ.index // 5).mean().round(2)
+            self.interval = "5"
         else:
             return print('Error: Can not transform 5 minutes data to 1 minute data.')
     
     def save(self):
-        if os.path.isdir(self.spath):
+        if Path.is_dir(self.spath):
             pass
         else:
-            os.mkdir(self.spath)
-        self.flow.to_csv(self.spath + '/%s_flow_vd_5min.csv'%(self.date), sep=',', encoding = 'big5')
-        self.speed.to_csv(self.spath + '/%s_speed_vd_5min.csv'%(self.date), sep=',', encoding = 'big5')
-        self.occ.to_csv(self.spath + '/%s_occ_vd_5min.csv'%(self.date), sep=',', encoding = 'big5')
-
-    def flow2pcu(self, date, pce=1.4):# 輸出流量資料，需要更改檔案位置
-        #大型車之小客車當量(根據公路容量手冊建議)
-        pcu = self.psg.add(self.lag*pce, fill_value=0)
-        pcu = self.pcu.add(self.tr*pce, fill_value=0)
-        pcu.to_csv('D:/VD_data/%s/%s_pcu_vd2.csv'%(date,date), sep=',', encoding = 'big5')
+            Path.mkdir(self.spath, parents=True)
+        self.flow.to_csv(self.spath.joinpath(f'{self.date}_flow_{self.interval}min.csv'), sep=',', encoding = 'big5')
+        self.speed.to_csv(self.spath.joinpath(f'{self.date}_speed_{self.interval}min.csv'), sep=',', encoding = 'big5')
+        self.occ.to_csv(self.spath.joinpath(f'{self.date}_occ_{self.interval}min.csv'), sep=',', encoding = 'big5')

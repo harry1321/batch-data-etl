@@ -37,7 +37,7 @@ def task_upload(data_state,ti):
     temp = ti.xcom_pull(task_ids="date")
     date = temp.get("date")
     gcs = GCSBucket()
-    gcs.upload_directory(source_directory=f"/opt/airflow/data/{data_state}/{date}", prefix=date)
+    gcs.upload_directory(source_directory=f"/opt/airflow/data/{data_state}/{date}", prefix=f"{data_state}/{date}")
 
 def task_branch(success_route, failed_route, ti):
     temp = ti.xcom_pull(task_ids="clean")

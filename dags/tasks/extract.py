@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 import gzip
 import requests
 import shutil
@@ -10,17 +11,17 @@ import pandas as pd
 class GenData:
     def __init__(self):
         #!!重要!!可視需要更改下載檔案儲存位置
-        self.subdir = os.getcwd() + '/data/downloadzip/'
-        self.spath = os.getcwd() + '/data/unprocessed/'
+        self.subdir = Path.cwd().joinpath(*['data','downloadzip'])
+        self.spath = Path.cwd().joinpath(*['data','unprocessed',self.date])
 
         self.URL = 'https://tisvcloud.freeway.gov.tw/history/motc20/VD/'
         self.VD_LIST = 'https://raw.githubusercontent.com/harry1321/Traffic-Dashboard/test/data/vd_static_mainline.csv'
         
         #建立資料夾
-        if os.path.isdir(self.subdir):
+        if Path.is_dir(self.subdir):
             pass
         else:
-            os.makedirs(self.subdir)
+            Path.mkdir(self.subdir, parents=True)
 
     def download_data(self, url):
         target_path = self.subdir + url.split('/')[-1]
@@ -147,19 +148,19 @@ class GenData:
 
         subdir = self.spath + date
         #自動依日期建立資料夾，名稱為日期
-        if os.path.isdir(subdir):
+        if Path.is_dir(subdir):
             print("Exists")
-            flow.to_csv(subdir + f'/{date}_flow_vd2.csv', sep=',', encoding = 'big5')
-            speed.to_csv(subdir + f'/{date}_speed_vd2.csv', sep=',',encoding='big5')
-            occ.to_csv(subdir + f'/{date}_occ_vd2.csv', sep=',',encoding='big5')
-            psg.to_csv(subdir + f'/{date}_psg_vd2.csv', sep=',',encoding='big5')
-            lag.to_csv(subdir + f'/{date}_lag_vd2.csv', sep=',',encoding='big5')
-            tr.to_csv(subdir + f'/{date}_tr_vd2.csv', sep=',',encoding='big5')
+            flow.to_csv(subdir.joinpath(f'/{date}_flow_1min.csv'), sep=',', encoding = 'big5')
+            speed.to_csv(subdir.joinpath(f'/{date}_speed_1min.csv'), sep=',',encoding='big5')
+            occ.to_csv(subdir.joinpath(f'/{date}_occ_1min.csv'), sep=',',encoding='big5')
+            psg.to_csv(subdir.joinpath(f'/{date}_psg_1min.csv'), sep=',',encoding='big5')
+            lag.to_csv(subdir.joinpathf('/{date}_lag_1min.csv'), sep=',',encoding='big5')
+            tr.to_csv(subdir.joinpath(f'/{date}_tr_1min.csv'), sep=',',encoding='big5')
         else:
-            os.makedirs(subdir)
-            flow.to_csv(subdir + f'/{date}_flow_vd2.csv', sep=',', encoding = 'big5')
-            speed.to_csv(subdir + f'/{date}_speed_vd2.csv', sep=',',encoding='big5')
-            occ.to_csv(subdir + f'/{date}_occ_vd2.csv', sep=',',encoding='big5')
-            psg.to_csv(subdir + f'/{date}_psg_vd2.csv', sep=',',encoding='big5')
-            lag.to_csv(subdir + f'/{date}_lag_vd2.csv', sep=',',encoding='big5')
-            tr.to_csv(subdir + f'/{date}_tr_vd2.csv', sep=',',encoding='big5')
+            Path.mkdir(subdir, parents=True)
+            flow.to_csv(subdir.joinpath(f'/{date}_flow_1min.csv'), sep=',', encoding = 'big5')
+            speed.to_csv(subdir.joinpath(f'/{date}_speed_1min.csv'), sep=',',encoding='big5')
+            occ.to_csv(subdir.joinpath(f'/{date}_occ_1min.csv'), sep=',',encoding='big5')
+            psg.to_csv(subdir.joinpath(f'/{date}_psg_1min.csv'), sep=',',encoding='big5')
+            lag.to_csv(subdir.joinpathf('/{date}_lag_1min.csv'), sep=',',encoding='big5')
+            tr.to_csv(subdir.joinpath(f'/{date}_tr_1min.csv'), sep=',',encoding='big5')
