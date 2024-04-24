@@ -45,10 +45,12 @@ To run the project, follow these steps:
 For more details about how to quickly deploy Airflow on docker, please refer to https://airflow.apache.org/docs/apache-airflow/stable/howto/docker-compose/index.html.
 # Requirements
 
-1. Have Docker installed on your system
-2. Have all the required packages written in `requirements.txt` 
-3. Have your own Google Cloud Platform account and get credentials to store or access files in Google Cloud Storage.
-4. Set up a new project and storage bucket, and then set the Airflow Variables in `.env` 
+1. Have Docker installed on your system.
+2. Create these folders: `logs`, `plugins`, `config`, `data`, `google/credentials`.
+3. Have all the required packages written in `requirements.txt` .
+4. Have your own Google Cloud Platform account, and create a new project and storage bucket.
+5. Get credentials to store or access files in Google Cloud Storage, and save the credentials.json under ./google/credentials .
+6. Then set the necessary Airflow Variables in .env .
 
 # Dependencies
 
