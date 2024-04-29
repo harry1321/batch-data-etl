@@ -43,9 +43,9 @@ class CleanTool:
             path = self.rpath
         elif self.interval == "5":
             path = self.spath
-        self.flow = pd.read_csv(path.joinpath(f'{self.date}_flow_{self.interval}min.csv'), index_col=0, encoding = 'big5')
-        self.speed = pd.read_csv(path.joinpath(f'{self.date}_speed_{self.interval}min.csv'), index_col=0, encoding = 'big5')
-        self.occ = pd.read_csv(path.joinpath(f'{self.date}_occ_{self.interval}min.csv'), index_col=0, encoding = 'big5')
+        self.flow = pd.read_csv(path.joinpath(*[f'{self.date}_volume_{self.interval}min.csv']), index_col=0, encoding = 'big5')
+        self.speed = pd.read_csv(path.joinpath(*[f'{self.date}_speed_{self.interval}min.csv']), index_col=0, encoding = 'big5')
+        self.occ = pd.read_csv(path.joinpath(*[f'{self.date}_occupancy_{self.interval}min.csv']), index_col=0, encoding = 'big5')
 
     def change_date(self, date):
         self.date = date
@@ -240,6 +240,6 @@ class CleanTool:
             pass
         else:
             Path.mkdir(self.spath, parents=True)
-        self.flow.to_csv(self.spath.joinpath(f'{self.date}_flow_{self.interval}min.csv'), sep=',', encoding = 'big5')
-        self.speed.to_csv(self.spath.joinpath(f'{self.date}_speed_{self.interval}min.csv'), sep=',', encoding = 'big5')
-        self.occ.to_csv(self.spath.joinpath(f'{self.date}_occ_{self.interval}min.csv'), sep=',', encoding = 'big5')
+        self.flow.to_csv(self.spath.joinpath(*[f'{self.date}_volume_{self.interval}min.csv']), sep=',', encoding = 'big5')
+        self.speed.to_csv(self.spath.joinpath(*[f'{self.date}_speed_{self.interval}min.csv']), sep=',', encoding = 'big5')
+        self.occ.to_csv(self.spath.joinpath(*[f'{self.date}_occupancy_{self.interval}min.csv']), sep=',', encoding = 'big5')

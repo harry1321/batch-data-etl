@@ -24,8 +24,8 @@ class GenData:
             Path.mkdir(self.subdir, parents=True)
 
     def download_data(self, url):
-        target_path = self.subdir + url.split('/')[-1]
-        file_name = self.subdir + url.split('/')[-1].split('.')[0]+'.xml'
+        target_path = self.subdir.joinpath(*[url.split('/')[-1]])
+        file_name = os.getcwd() + '/data/downloadzip/' + url.split('/')[-1].split('.')[0]+'.xml'
         response = requests.get(url, stream=True)
 
         if response.status_code == 200:
@@ -146,21 +146,21 @@ class GenData:
         flow = psg.add(lag, fill_value=0)
         flow = flow.add(tr, fill_value=0)
 
-        subdir = self.spath + date
+        subdir = self.spath.joinpath(*[date])
         #自動依日期建立資料夾，名稱為日期
         if Path.is_dir(subdir):
             print("Exists")
-            flow.to_csv(subdir.joinpath(f'/{date}_flow_1min.csv'), sep=',', encoding = 'big5')
-            speed.to_csv(subdir.joinpath(f'/{date}_speed_1min.csv'), sep=',',encoding='big5')
-            occ.to_csv(subdir.joinpath(f'/{date}_occ_1min.csv'), sep=',',encoding='big5')
-            psg.to_csv(subdir.joinpath(f'/{date}_psg_1min.csv'), sep=',',encoding='big5')
-            lag.to_csv(subdir.joinpathf('/{date}_lag_1min.csv'), sep=',',encoding='big5')
-            tr.to_csv(subdir.joinpath(f'/{date}_tr_1min.csv'), sep=',',encoding='big5')
+            flow.to_csv(subdir.joinpath(*[f'{date}_volume_1min.csv']), sep=',', encoding = 'big5')
+            speed.to_csv(subdir.joinpath(*[f'{date}_speed_1min.csv']), sep=',',encoding='big5')
+            occ.to_csv(subdir.joinpath(*[f'{date}_occupancy_1min.csv']), sep=',',encoding='big5')
+            psg.to_csv(subdir.joinpath(*[f'{date}_psg_1min.csv']), sep=',',encoding='big5')
+            lag.to_csv(subdir.joinpath(*[f'{date}_lag_1min.csv']), sep=',',encoding='big5')
+            tr.to_csv(subdir.joinpath(*[f'{date}_tr_1min.csv']), sep=',',encoding='big5')
         else:
             Path.mkdir(subdir, parents=True)
-            flow.to_csv(subdir.joinpath(f'/{date}_flow_1min.csv'), sep=',', encoding = 'big5')
-            speed.to_csv(subdir.joinpath(f'/{date}_speed_1min.csv'), sep=',',encoding='big5')
-            occ.to_csv(subdir.joinpath(f'/{date}_occ_1min.csv'), sep=',',encoding='big5')
-            psg.to_csv(subdir.joinpath(f'/{date}_psg_1min.csv'), sep=',',encoding='big5')
-            lag.to_csv(subdir.joinpathf('/{date}_lag_1min.csv'), sep=',',encoding='big5')
-            tr.to_csv(subdir.joinpath(f'/{date}_tr_1min.csv'), sep=',',encoding='big5')
+            flow.to_csv(subdir.joinpath(*[f'{date}_volume_1min.csv']), sep=',', encoding = 'big5')
+            speed.to_csv(subdir.joinpath(*[f'{date}_speed_1min.csv']), sep=',',encoding='big5')
+            occ.to_csv(subdir.joinpath(*[f'{date}_occupancy_1min.csv']), sep=',',encoding='big5')
+            psg.to_csv(subdir.joinpath(*[f'{date}_psg_1min.csv']), sep=',',encoding='big5')
+            lag.to_csv(subdir.joinpath(*[f'{date}_lag_1min.csv']), sep=',',encoding='big5')
+            tr.to_csv(subdir.joinpath(*[f'{date}_tr_1min.csv']), sep=',',encoding='big5')
