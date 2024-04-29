@@ -4,7 +4,8 @@ from airflow.models import DAG
 # Operators
 from airflow.operators.python import PythonOperator, BranchPythonOperator
 
-from tasks.task_functions import task_date, task_gen, task_clean, task_branch, task_upload
+from tasks.task_functions import task_date, task_gen, task_clean, task_branch, task_upload, task_load_bq
+from tasks.read_load_gcp import GCP_CREDENTIALS_FILE_PATH, GCP_PROJECT_ID, BUCKET_NAME, BUCKET_CLASS, BUCKET_LOCATION
 
 default_args={
     "owner": 'Harry Yang',
@@ -16,7 +17,8 @@ default_args={
 
 with DAG(
     dag_id="batch_data_etl",
-    default_args=default_args
+    default_args=default_args,
+    catchup=False
 ) as dag:
     date = PythonOperator(
         task_id="date",
@@ -39,15 +41,22 @@ with DAG(
         op_kwargs={"success_route":"upload_processed", "failed_route":"upload_unprocessed"}
     )
 
-    upload_processed = PythonOperator(
+    load_gcs_processed = PythonOperator(
         task_id="upload_processed",
         python_callable=task_upload,
         op_kwargs={"data_state":"processed"}
     )
     
-    upload_unprocessed = PythonOperator(
+    load_gcs_unprocessed = PythonOperator(
         task_id='upload_unprocessed',
         python_callable=task_upload,
         op_kwargs={"data_state":"unprocessed"}
     )
-date >> gen >> clean >> branch >> [upload_processed, upload_unprocessed]
+
+    load_bq = PythonOperator(
+        task_id="load_bq",
+        python_callable=task_load_bq,
+        op_kwargs={"dataset_name":"test", "table_name":"test", "bucket_name":f"{BUCKET_NAME}"}
+    )
+date >> gen >> clean >> branch >> [load_gcs_processed, load_gcs_unprocessed]
+load_gcs_processed >> load_bq
