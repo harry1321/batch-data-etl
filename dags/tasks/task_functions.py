@@ -2,11 +2,11 @@ from datetime import datetime, timedelta
 
 from tasks.extract import GenData
 from tasks.clean_transform import CleanTool
-from tasks.read_load_gcp import GCSBucket
+from tasks.read_load_gcp import GCSBucket, GCBigQuery
 
-def task_date(ti):
+def task_date(**kwargs):
     # 以2021/05/30為例 格式為 date="20210530"
-    execute_date = datetime.today() - timedelta(days=1)
+    execute_date = kwargs['logical_date']
     execute_date = execute_date.strftime('%Y%m%d')
     return {'date':execute_date}
 
@@ -33,7 +33,7 @@ def task_clean(ti):
     sweep.save()
     return {"error_ratio":ratio}
 
-def task_upload(data_state,ti):
+def task_load_gcs(data_state,ti):
     temp = ti.xcom_pull(task_ids="date")
     date = temp.get("date")
     gcs = GCSBucket()
@@ -47,3 +47,9 @@ def task_branch(success_route, failed_route, ti):
     else:
         print(f"Did not pass data quality test with data error ratio {temp.get('error_ratio')}")
         return f"{success_route}"
+
+def task_load_bq(dataset_name, table_name, bucket_name, ti):
+    temp = ti.xcom_pull(task_ids="date")
+    date = temp.get("date")
+    gbq = GCBigQuery(dataset_name)
+    gbq.load_from_bucket(table_name=table_name, bucket_name=bucket_name, prefix=f"processed/{date}/")
