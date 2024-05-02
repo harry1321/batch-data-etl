@@ -4,7 +4,7 @@ from airflow.models import DAG
 # Operators
 from airflow.operators.python import PythonOperator, BranchPythonOperator
 
-from tasks.task_functions import task_date, task_gen, task_clean, task_branch, task_upload, task_load_bq
+from tasks.task_functions import task_date, task_gen, task_clean, task_branch, task_load_gcs, task_load_bq
 from tasks.read_load_gcp import GCP_CREDENTIALS_FILE_PATH, GCP_PROJECT_ID, BUCKET_NAME, BUCKET_CLASS, BUCKET_LOCATION
 
 default_args={
@@ -43,13 +43,13 @@ with DAG(
 
     load_gcs_processed = PythonOperator(
         task_id="upload_processed",
-        python_callable=task_upload,
+        python_callable=task_load_gcs,
         op_kwargs={"data_state":"processed"}
     )
     
     load_gcs_unprocessed = PythonOperator(
         task_id='upload_unprocessed',
-        python_callable=task_upload,
+        python_callable=task_load_gcs,
         op_kwargs={"data_state":"unprocessed"}
     )
 

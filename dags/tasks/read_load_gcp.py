@@ -107,6 +107,7 @@ class GCBigQuery():
                 result_df = pd.merge(result_df, temp , on=temp.columns.tolist()[0:2], how="outer")
             except KeyError:
                 result_df = temp
+                continue
         
         job_config = bigquery.LoadJobConfig(
                     source_format=bigquery.SourceFormat.CSV,

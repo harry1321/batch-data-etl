@@ -216,23 +216,29 @@ class CleanTool:
     def transform(self):
         mainline_id = pd.read_csv('https://raw.githubusercontent.com/harry1321/Traffic-Dashboard/test/data/vd_static_mainline.csv')
         mainline_id = [mainline_id.iloc[i,0] for i in range(mainline_id.shape[0])]
-
         self.flow.columns, self.speed.columns, self.occ.columns = mainline_id, mainline_id, mainline_id
 
-        time_index = pd.date_range(self.date,periods=288,freq="5min").to_pydatetime()# python datetime object
-        tz = timezone(timedelta(hours=8)) # 設定+8時區
-        time_index = [t.replace(tzinfo=tz) for t in time_index] # 指定輸入的datetime時區為+8
-        stamp_index = [t.timestamp() for t in time_index] # 取得timestamp
-        self.flow.index, self.speed.index, self.occ.index = stamp_index, stamp_index, stamp_index
-        self.flow.index.names, self.speed.index.names, self.occ.index.names = ['time'], ['time'], ['time']
-
         if self.interval == '1':
-            self.flow = (self.flow/60).groupby(self.flow.index // 5).sum().round(0)*12
             speed = (self.speed*self.flow/60).groupby(self.speed.index // 5).sum()
+            self.flow = (self.flow/60).groupby(self.flow.index // 5).sum().round(0)*12
             self.speed = (12*speed/self.flow).round(2)
             self.occ = (self.occ).groupby(self.occ.index // 5).mean().round(2)
+            
+            time_index = pd.date_range(self.date,periods=288,freq="5min").to_pydatetime()# python datetime object
+            tz = timezone(timedelta(hours=8)) # 設定+8時區
+            time_index = [t.replace(tzinfo=tz) for t in time_index] # 指定輸入的datetime時區為+8
+            stamp_index = [t.timestamp() for t in time_index] # 取得timestamp
+            self.flow.index, self.speed.index, self.occ.index = stamp_index, stamp_index, stamp_index
+            self.flow.index.names, self.speed.index.names, self.occ.index.names = ['time'], ['time'], ['time']
+            
             self.interval = "5"
         else:
+            time_index = pd.date_range(self.date,periods=288,freq="5min").to_pydatetime()# python datetime object
+            tz = timezone(timedelta(hours=8)) # 設定+8時區
+            time_index = [t.replace(tzinfo=tz) for t in time_index] # 指定輸入的datetime時區為+8
+            stamp_index = [t.timestamp() for t in time_index] # 取得timestamp
+            self.flow.index, self.speed.index, self.occ.index = stamp_index, stamp_index, stamp_index
+            self.flow.index.names, self.speed.index.names, self.occ.index.names = ['time'], ['time'], ['time']
             return print('Error: Can not transform 5 minutes data to 1 minute data.')
     
     def save(self):

@@ -12,8 +12,7 @@ class GenData:
     def __init__(self):
         #!!重要!!可視需要更改下載檔案儲存位置
         self.subdir = Path.cwd().joinpath(*['data','downloadzip'])
-        self.spath = Path.cwd().joinpath(*['data','unprocessed',self.date])
-
+        self.spath = Path.cwd().joinpath(*['data','unprocessed'])
         self.URL = 'https://tisvcloud.freeway.gov.tw/history/motc20/VD/'
         self.VD_LIST = 'https://raw.githubusercontent.com/harry1321/Traffic-Dashboard/test/data/vd_static_mainline.csv'
         
@@ -149,7 +148,7 @@ class GenData:
         subdir = self.spath.joinpath(*[date])
         #自動依日期建立資料夾，名稱為日期
         if Path.is_dir(subdir):
-            print("Exists")
+            print(f"Folder path: {subdir} exists.")
             flow.to_csv(subdir.joinpath(*[f'{date}_volume_1min.csv']), sep=',', encoding = 'big5')
             speed.to_csv(subdir.joinpath(*[f'{date}_speed_1min.csv']), sep=',',encoding='big5')
             occ.to_csv(subdir.joinpath(*[f'{date}_occupancy_1min.csv']), sep=',',encoding='big5')
