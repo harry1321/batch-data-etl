@@ -7,6 +7,8 @@ The objective of this project is to autonomously retrieve data from an open-sour
 3. **Data Transform**: Aggregate the data to adjust the time interval from 1 minute to 5 minutes, as reducing the interval decreases data fluctuations.
 4. **Data Loading**: Load the data into Google Cloud Storage, branching it into two directories. One directory is designated to store transformed and cleaned data, while the other is allocated for storing unqualified data.
 
+To summarize here is a snapshot from Airflow web UI to show how these job are arranged.
+![architecture.png](/assets/workflow_dag.png)
 # Architecture
 
 ![architecture.png](/assets/architecture.png)
@@ -14,6 +16,7 @@ The objective of this project is to autonomously retrieve data from an open-sour
 
 - `/dags` : Contains the following Python scripts to implement the batch data ETL workflow.
     - `/tasks` : All the task functions are include in this folder.
+        - `variables.py` : Store global variables will be imported in other scripts.
         - `extract.py` : Functions to extract target data from open source database.
         - `clean_transform.py` : Functions to clean and transform data for loading into a Google Cloud Storage bucket.
         - `read_load.py` : Functions to load data to Google Cloud Storage and BigQuery.
