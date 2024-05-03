@@ -1,9 +1,0 @@
-google-cloud-bigquery==3.21.0
-dash==2.7.0
-dash-core-components==2.0.0
-dash-html-components==2.0.0
-numpy
-pandas
-plotly
-gunicorn
-db-dtypes
